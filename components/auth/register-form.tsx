@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   AlertCircle,
@@ -40,6 +41,8 @@ function getPasswordStrength(password: string): {
 }
 
 export default function RegisterForm() {
+  const router = useRouter();
+
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -99,21 +102,64 @@ export default function RegisterForm() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     if (!validateForm()) return;
 
     setIsSubmitting(true);
+
     try {
-      // Plug in your registration API here
-      console.log({ fullName, email, password });
-      await new Promise((r) => setTimeout(r, 1000)); // simulate network
-      setRegistered(true);
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fullName: fullName.trim(),
+          email: email.trim().toLowerCase(),
+          password,
+        }),
+      });
+
+      const text = await response.text();
+      console.log("Registration API status:", response.status);
+      console.log("Registration API response:", text);
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error(
+          `Server returned a non-JSON response (${response.status}).`,
+        );
+      }
+      if (!response.ok) {
+        if (data.field === "email") {
+          setErrors({
+            email: data.message || "This email is already registered.",
+          });
+        } else {
+          setErrors({
+            email: data.message || "Registration failed. Please try again.",
+          });
+        }
+
+        return;
+      }
+
+      console.log("Registration successful:", data);
+      sessionStorage.setItem("verificationEmail", email.trim().toLowerCase());
+      router.push(
+        `/verify-otp?email=${encodeURIComponent(email.trim().toLowerCase())}`,
+      );
     } catch (error) {
       console.error("Registration failed:", error);
+
+      setErrors({
+        email: "Unable to connect to the server. Please try again.",
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
-
   const handleGoogleSignUp = () => {
     // Add Google OAuth here
     console.log("Google sign-up clicked");
@@ -188,7 +234,9 @@ export default function RegisterForm() {
           {/* Divider */}
           <div className="my-7 flex items-center gap-4">
             <div className="h-px flex-1 bg-zinc-800" />
-            <span className="text-xs text-zinc-500">OR CONTINUE WITH EMAIL</span>
+            <span className="text-xs text-zinc-500">
+              OR CONTINUE WITH EMAIL
+            </span>
             <div className="h-px flex-1 bg-zinc-800" />
           </div>
 
@@ -330,9 +378,7 @@ export default function RegisterForm() {
                       <div
                         key={i}
                         className={`h-1 flex-1 rounded-full transition-all duration-300 ${
-                          i <= strength.score
-                            ? strength.color
-                            : "bg-zinc-800"
+                          i <= strength.score ? strength.color : "bg-zinc-800"
                         }`}
                       />
                     ))}
@@ -344,10 +390,10 @@ export default function RegisterForm() {
                         strength.score <= 1
                           ? "text-red-400"
                           : strength.score <= 2
-                          ? "text-amber-400"
-                          : strength.score <= 3
-                          ? "text-yellow-400"
-                          : "text-green-400"
+                            ? "text-amber-400"
+                            : strength.score <= 3
+                              ? "text-yellow-400"
+                              : "text-green-400"
                       }`}
                     >
                       {strength.label}
@@ -395,15 +441,17 @@ export default function RegisterForm() {
                     errors.confirmPassword
                       ? "border-red-500 focus:ring-2 focus:ring-red-500/20"
                       : confirmPassword && confirmPassword === password
-                      ? "border-green-500 focus:ring-2 focus:ring-green-500/20"
-                      : "border-zinc-700 focus:border-green-500 focus:ring-2 focus:ring-green-500/20"
+                        ? "border-green-500 focus:ring-2 focus:ring-green-500/20"
+                        : "border-zinc-700 focus:border-green-500 focus:ring-2 focus:ring-green-500/20"
                   }`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 transition hover:text-green-500"
-                  aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                  aria-label={
+                    showConfirmPassword ? "Hide password" : "Show password"
+                  }
                 >
                   {showConfirmPassword ? (
                     <EyeOff className="h-5 w-5" />
@@ -453,18 +501,15 @@ export default function RegisterForm() {
                     }}
                     className="sr-only"
                   />
+
                   <div
                     className={`flex h-5 w-5 items-center justify-center rounded border transition-all ${
                       termsAccepted
                         ? "border-green-500 bg-green-500"
                         : errors.terms
-                        ? "border-red-500 bg-zinc-950"
-                        : "border-zinc-700 bg-zinc-950"
+                          ? "border-red-500 bg-zinc-950"
+                          : "border-zinc-700 bg-zinc-950"
                     }`}
-                    onClick={() => {
-                      setTermsAccepted((prev) => !prev);
-                      clearError("terms");
-                    }}
                   >
                     {termsAccepted && (
                       <svg
@@ -483,6 +528,7 @@ export default function RegisterForm() {
                     )}
                   </div>
                 </div>
+
                 <span className="text-sm text-zinc-400 leading-relaxed">
                   I agree to the{" "}
                   <Link
@@ -500,6 +546,7 @@ export default function RegisterForm() {
                   </Link>
                 </span>
               </label>
+
               <AnimatePresence>
                 {errors.terms && (
                   <motion.p

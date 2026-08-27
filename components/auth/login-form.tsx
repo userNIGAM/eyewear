@@ -3,13 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  AlertCircle,
-  Eye,
-  EyeOff,
-  Lock,
-  Mail,
-} from "lucide-react";
+import { AlertCircle, Eye, EyeOff, Lock, Mail } from "lucide-react";
 
 interface FormErrors {
   email?: string;
@@ -37,8 +31,7 @@ export default function LoginForm() {
     if (!password) {
       newErrors.password = "Password is required.";
     } else if (password.length < 6) {
-      newErrors.password =
-        "Password must be at least 6 characters.";
+      newErrors.password = "Password must be at least 6 characters.";
     }
 
     setErrors(newErrors);
@@ -46,9 +39,7 @@ export default function LoginForm() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (
-    e: React.FormEvent<HTMLFormElement>
-  ) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!validateForm()) return;
@@ -56,16 +47,36 @@ export default function LoginForm() {
     setIsSubmitting(true);
 
     try {
-      // Add your login API here
-      console.log({
-        email,
-        password,
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+          password,
+        }),
       });
 
-      // Example:
-      // await loginUser(email, password);
+      const data = await response.json();
+
+      if (!response.ok) {
+        setErrors({
+          email: data.message || "Invalid email or password.",
+        });
+        return;
+      }
+
+      console.log("Login successful:", data);
+
+      // Redirect after successful login
+      window.location.href = "/";
     } catch (error) {
       console.error("Login failed:", error);
+
+      setErrors({
+        email: "Something went wrong. Please try again.",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -121,11 +132,7 @@ export default function LoginForm() {
           </div>
 
           {/* Login Form */}
-          <form
-            onSubmit={handleSubmit}
-            noValidate
-            className="space-y-5"
-          >
+          <form onSubmit={handleSubmit} noValidate className="space-y-5">
             {/* Email */}
             <div>
               <label
@@ -225,11 +232,7 @@ export default function LoginForm() {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 transition hover:text-green-500"
-                  aria-label={
-                    showPassword
-                      ? "Hide password"
-                      : "Show password"
-                  }
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? (
                     <EyeOff className="h-5 w-5" />
@@ -283,11 +286,7 @@ export default function LoginForm() {
 
 function GoogleIcon() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-5 w-5"
-      aria-hidden="true"
-    >
+    <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
       <path
         fill="#4285F4"
         d="M21.35 12.27c0-.79-.07-1.55-.2-2.27H12v4.3h5.24a4.48 4.48 0 0 1-1.94 2.94v2.79h3.14c1.84-1.69 2.91-4.18 2.91-7.76Z"
