@@ -4,6 +4,7 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, Heart, ShoppingCart, User, X } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useCart } from "@/context/cart-context";
 import { useWishlist } from "@/context/wishlist-context";
 
@@ -12,7 +13,17 @@ import Logo from "./logo";
 import MobileNav from "./mobile-nav";
 import ProfileMenu from "./profile-menu";
 
+const authRoutes = [
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+  "/verify-otp",
+];
+
 export default function Navbar() {
+  const pathname = usePathname();
+
   const [mobileMenuOpen, setMobileMenuOpen] =
     useState(false);
 
@@ -22,9 +33,17 @@ export default function Navbar() {
   const { cartCount } = useCart();
   const { wishlistCount } = useWishlist();
 
+  const isAuthRoute = authRoutes.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`),
+  );
+
   const handleCloseMobileMenu = () => {
     setMobileMenuOpen(false);
   };
+
+  if (isAuthRoute) {
+    return null;
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-zinc-800 bg-zinc-950">

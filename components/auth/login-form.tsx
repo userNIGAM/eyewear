@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertCircle, Eye, EyeOff, Lock, Mail } from "lucide-react";
 
@@ -11,6 +12,8 @@ interface FormErrors {
 }
 
 export default function LoginForm() {
+  const router = useRouter();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -53,7 +56,7 @@ export default function LoginForm() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email: email.trim(),
+          identifier: email.trim().toLowerCase(),
           password,
         }),
       });
@@ -69,8 +72,8 @@ export default function LoginForm() {
 
       console.log("Login successful:", data);
 
-      // Redirect after successful login
-      window.location.href = "/";
+      router.push("/");
+      router.refresh();
     } catch (error) {
       console.error("Login failed:", error);
 
@@ -270,7 +273,7 @@ export default function LoginForm() {
 
           {/* Register */}
           <p className="mt-7 text-center text-sm text-zinc-400">
-            Don't have an account?{" "}
+            Don&apos;t have an account?{" "}
             <Link
               href="/register"
               className="font-medium text-green-500 transition hover:text-green-400"

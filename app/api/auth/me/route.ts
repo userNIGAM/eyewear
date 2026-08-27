@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import User from "@/models/User";
 import { connectDB } from "@/lib/mongodb";
 import {
+  clearAuthCookie,
   sanitizeUser,
   verifyToken,
 } from "@/lib/auth-utils";
@@ -35,13 +36,17 @@ export async function GET(request: NextRequest) {
     const decoded = verifyToken(token);
 
     if (!decoded) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         {
           success: false,
           message: "Invalid or expired session",
         },
         { status: 401 }
       );
+
+      clearAuthCookie(response);
+
+      return response;
     }
 
     // =====================================================
@@ -51,13 +56,17 @@ export async function GET(request: NextRequest) {
     const user = await User.findById(decoded.userId);
 
     if (!user) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         {
           success: false,
           message: "User not found",
         },
         { status: 404 }
       );
+
+      clearAuthCookie(response);
+
+      return response;
     }
 
     // =====================================================

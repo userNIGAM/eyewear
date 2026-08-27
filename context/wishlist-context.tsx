@@ -20,15 +20,18 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
 
   // Hydrate from localStorage on mount
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem("eyewear_wishlist");
-      if (stored) {
-        setWishlistItems(JSON.parse(stored));
+    queueMicrotask(() => {
+      try {
+        const stored = localStorage.getItem("eyewear_wishlist");
+        if (stored) {
+          setWishlistItems(JSON.parse(stored));
+        }
+      } catch (err) {
+        console.error("Failed to load wishlist:", err);
+      } finally {
+        setIsLoaded(true);
       }
-    } catch (err) {
-      console.error("Failed to load wishlist:", err);
-    }
-    setIsLoaded(true);
+    });
   }, []);
 
   // Persist to localStorage on change

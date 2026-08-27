@@ -12,7 +12,7 @@ interface DeliveryInfo {
 interface OrderReviewProps {
     deliveryInfo: DeliveryInfo;
     paymentMethod: string;
-    onSubmit: () => void;
+    onSubmit: () => void | Promise<void>;
 }
 
 export default function OrderReview({

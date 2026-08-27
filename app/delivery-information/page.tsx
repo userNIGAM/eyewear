@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
+import { useCart } from "@/context/cart-context";
 
 import DeliveryForm from "@/components/checkout/DeliveryForm";
 import PaymentMethod from "@/components/checkout/PaymentMethod";
@@ -10,6 +11,7 @@ import OrderReview from "@/components/checkout/OrderReview";
 
 export default function DeliveryInformationPage() {
     const router = useRouter();
+    const { cartTotal } = useCart();
 
     const [paymentMethod, setPaymentMethod] = useState("esewa");
 
@@ -20,13 +22,69 @@ export default function DeliveryInformationPage() {
         note: "",
     });
 
-    const handleSubmit = () => {
-        console.log({
-            deliveryInfo,
-            paymentMethod,
-        });
+    const shippingThreshold = 150;
+    const shippingCost =
+        cartTotal >= shippingThreshold || cartTotal === 0 ? 0 : 15;
+    const tax = cartTotal * 0.08;
 
-        // Payment integration will be added here later.
+    const handleSubmit = async () => {
+        try {
+            if (paymentMethod !== "esewa") {
+                console.log({
+                    deliveryInfo,
+                    paymentMethod,
+                });
+                return;
+            }
+
+            const response = await fetch("/api/payments/esewa", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    amount: cartTotal,
+                    taxAmount: tax,
+                    serviceCharge: 0,
+                    deliveryCharge: shippingCost,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.message || "Unable to initialize payment",
+                );
+            }
+
+            sessionStorage.setItem(
+                "checkout_delivery_info",
+                JSON.stringify({
+                    deliveryInfo,
+                    paymentMethod,
+                    orderTotal: cartTotal + tax + shippingCost,
+                }),
+            );
+
+            const form = document.createElement("form");
+            form.method = "POST";
+            form.action = data.actionUrl;
+            form.style.display = "none";
+
+            Object.entries(data.fields).forEach(([name, value]) => {
+                const input = document.createElement("input");
+                input.type = "hidden";
+                input.name = name;
+                input.value = String(value);
+                form.appendChild(input);
+            });
+
+            document.body.appendChild(form);
+            form.submit();
+        } catch (error) {
+            console.error("eSewa checkout failed:", error);
+        }
     };
 
     return (

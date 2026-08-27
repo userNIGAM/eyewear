@@ -52,7 +52,7 @@ export default function RegisterForm() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [registered, setRegistered] = useState(false);
+  const [registered] = useState(false);
 
   const strength = getPasswordStrength(password);
 

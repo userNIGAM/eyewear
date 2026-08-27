@@ -20,15 +20,17 @@ export default function VerifyOTPForm() {
   // ============================================
 
   useEffect(() => {
-    const queryEmail = searchParams.get("email");
+    queueMicrotask(() => {
+      const queryEmail = searchParams.get("email");
 
-    const storedEmail = sessionStorage.getItem("verificationEmail");
+      const storedEmail = sessionStorage.getItem("verificationEmail");
 
-    const verificationEmail = queryEmail || storedEmail;
+      const verificationEmail = queryEmail || storedEmail;
 
-    if (verificationEmail) {
-      setEmail(verificationEmail);
-    }
+      if (verificationEmail) {
+        setEmail(verificationEmail);
+      }
+    });
   }, [searchParams]);
 
   // ============================================
