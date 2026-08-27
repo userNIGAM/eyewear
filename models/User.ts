@@ -5,6 +5,9 @@ export interface IUser extends Document {
   email: string;
   password: string;
 
+  // User Role
+  role: "user" | "admin";
+
   // Account verification
   isVerified: boolean;
   verificationOTP?: string;
@@ -42,6 +45,17 @@ const UserSchema = new Schema<IUser>(
       type: String,
       required: [true, "Password is required"],
       minlength: [6, "Password must be at least 6 characters"],
+    },
+
+    // User Role
+    role: {
+      type: String,
+      enum: {
+        values: ["user", "admin"],
+        message: "Role must be either user or admin",
+      },
+      default: "user",
+      required: true,
     },
 
     // Account Verification
