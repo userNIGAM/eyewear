@@ -33,19 +33,44 @@ export async function POST(request: NextRequest) {
     const deliveryCharge = Number(body.deliveryCharge);
 
     if (
-      Number.isNaN(amount) ||
-      Number.isNaN(taxAmount) ||
-      Number.isNaN(serviceCharge) ||
-      Number.isNaN(deliveryCharge)
+      !Number.isFinite(amount) ||
+      !Number.isFinite(taxAmount) ||
+      !Number.isFinite(serviceCharge) ||
+      !Number.isFinite(deliveryCharge)
     ) {
       return NextResponse.json(
         {
           success: false,
-          message: "Invalid payment request",
+          message: "Invalid payment amount.",
         },
         { status: 400 },
       );
     }
+
+    if (amount <= 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Payment amount must be greater than zero.",
+        },
+        { status: 400 },
+      );
+    }
+
+    if (taxAmount < 0 || serviceCharge < 0 || deliveryCharge < 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Invalid payment charges.",
+        },
+        { status: 400 },
+      );
+    }
+
+    const productCode =
+      process.env.ESEWA_PRODUCT_CODE || ESEWA_DEFAULT_PRODUCT_CODE;
+
+    const secretKey = process.env.ESEWA_SECRET_KEY || ESEWA_DEFAULT_SECRET_KEY;
 
     const payload = buildEsewaPaymentPayload(
       {
@@ -56,27 +81,22 @@ export async function POST(request: NextRequest) {
       },
       getRequestOrigin(request),
       {
-        productCode:
-          process.env.ESEWA_PRODUCT_CODE || ESEWA_DEFAULT_PRODUCT_CODE,
-        secretKey:
-          process.env.ESEWA_SECRET_KEY || ESEWA_DEFAULT_SECRET_KEY,
+        productCode,
+        secretKey,
       },
     );
 
-    return NextResponse.json(
-      {
-        success: true,
-        ...payload,
-      },
-      { status: 200 },
-    );
+    return NextResponse.json({
+      success: true,
+      ...payload,
+    });
   } catch (error) {
     console.error("eSewa initialization error:", error);
 
     return NextResponse.json(
       {
         success: false,
-        message: "Unable to initialize eSewa payment",
+        message: "Unable to initialize eSewa payment.",
       },
       { status: 500 },
     );
