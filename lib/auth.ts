@@ -1,32 +1,67 @@
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import { cookies } from "next/headers";
 
-const JWT_SECRET = process.env.JWT_SECRET;
+export type UserRole = "user" | "admin";
 
-if (!JWT_SECRET) {
-  throw new Error("JWT_SECRET is not defined");
-}
-
-export interface AuthTokenPayload {
+export interface AuthTokenPayload extends JwtPayload {
   userId: string;
-  role: "user" | "admin";
+  role: UserRole;
 }
 
-export function createAuthToken(payload: AuthTokenPayload) {
-  return jwt.sign(payload, JWT_SECRET, {
-    expiresIn: "7d",
-  });
+const getJwtSecret = (): string => {
+  const secret = process.env.JWT_SECRET;
+
+  if (!secret) {
+    throw new Error("JWT_SECRET is not defined");
+  }
+
+  return secret;
+};
+
+// =========================================================
+// CREATE AUTH TOKEN
+// =========================================================
+
+export function createAuthToken(payload: AuthTokenPayload): string {
+  return jwt.sign(
+    {
+      userId: payload.userId,
+      role: payload.role,
+    },
+    getJwtSecret(),
+    {
+      expiresIn: "7d",
+    },
+  );
 }
+
+// =========================================================
+// VERIFY AUTH TOKEN
+// =========================================================
 
 export function verifyAuthToken(token: string): AuthTokenPayload | null {
   try {
-    return jwt.verify(token, JWT_SECRET) as AuthTokenPayload;
+    const decoded = jwt.verify(token, getJwtSecret());
+
+    if (
+      typeof decoded === "string" ||
+      !decoded.userId ||
+      (decoded.role !== "user" && decoded.role !== "admin")
+    ) {
+      return null;
+    }
+
+    return decoded as AuthTokenPayload;
   } catch {
     return null;
   }
 }
 
-export async function getCurrentUser() {
+// =========================================================
+// GET CURRENT USER
+// =========================================================
+
+export async function getCurrentUser(): Promise<AuthTokenPayload | null> {
   const cookieStore = await cookies();
 
   const token = cookieStore.get("auth_token")?.value;
@@ -38,7 +73,11 @@ export async function getCurrentUser() {
   return verifyAuthToken(token);
 }
 
-export async function requireAdmin() {
+// =========================================================
+// REQUIRE ADMIN
+// =========================================================
+
+export async function requireAdmin(): Promise<AuthTokenPayload | null> {
   const user = await getCurrentUser();
 
   if (!user || user.role !== "admin") {

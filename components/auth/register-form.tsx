@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 
 interface FormErrors {
-  fullName?: string;
+  name?: string;
   email?: string;
   password?: string;
   confirmPassword?: string;
@@ -43,7 +43,7 @@ function getPasswordStrength(password: string): {
 export default function RegisterForm() {
   const router = useRouter();
 
-  const [fullName, setFullName] = useState("");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -63,11 +63,11 @@ export default function RegisterForm() {
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
-    // Full name
-    if (!fullName.trim()) {
-      newErrors.fullName = "Full name is required.";
-    } else if (fullName.trim().length < 2) {
-      newErrors.fullName = "Name must be at least 2 characters.";
+    // Name
+    if (!name.trim()) {
+      newErrors.name = "Name is required.";
+    } else if (name.trim().length < 2) {
+      newErrors.name = "Name must be at least 2 characters.";
     }
 
     // Email
@@ -114,7 +114,7 @@ export default function RegisterForm() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          fullName: fullName.trim(),
+          name: name.trim(),
           email: email.trim().toLowerCase(),
           password,
         }),
@@ -183,7 +183,7 @@ export default function RegisterForm() {
           <p className="text-zinc-400 text-sm leading-relaxed mb-8">
             Welcome aboard,{" "}
             <span className="text-white font-semibold">
-              {fullName.split(" ")[0]}
+              {name.split(" ")[0]}
             </span>
             ! Your account has been created successfully. Start exploring our
             premium eyewear collections.
@@ -242,35 +242,35 @@ export default function RegisterForm() {
 
           {/* Register Form */}
           <form onSubmit={handleSubmit} noValidate className="space-y-5">
-            {/* Full Name */}
+            {/* Name */}
             <div>
               <label
-                htmlFor="fullName"
+                htmlFor="name"
                 className="mb-2 block text-sm font-medium text-zinc-300"
               >
-                Full Name
+                Name
               </label>
               <div className="relative">
                 <User className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-zinc-500" />
                 <input
-                  id="fullName"
+                  id="name"
                   type="text"
-                  value={fullName}
+                  value={name}
                   onChange={(e) => {
-                    setFullName(e.target.value);
-                    clearError("fullName");
+                    setName(e.target.value);
+                    clearError("name");
                   }}
                   placeholder="John Doe"
                   autoComplete="name"
                   className={`w-full rounded-xl border bg-zinc-950 py-3 pl-11 pr-4 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-600 ${
-                    errors.fullName
+                    errors.name
                       ? "border-red-500 focus:ring-2 focus:ring-red-500/20"
                       : "border-zinc-700 focus:border-green-500 focus:ring-2 focus:ring-green-500/20"
                   }`}
                 />
               </div>
               <AnimatePresence>
-                {errors.fullName && (
+                {errors.name && (
                   <motion.p
                     initial={{ opacity: 0, y: -5 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -278,7 +278,7 @@ export default function RegisterForm() {
                     className="mt-2 flex items-center gap-1 text-xs text-red-400"
                   >
                     <AlertCircle className="h-3.5 w-3.5" />
-                    {errors.fullName}
+                    {errors.name}
                   </motion.p>
                 )}
               </AnimatePresence>

@@ -9,14 +9,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     const {
-      fullName,
+      name,
       email,
       password,
       adminSecret,
     } = body;
 
     // Validate fields
-    if (!fullName || !email || !password || !adminSecret) {
+    if (!name || !email || !password || !adminSecret) {
       return NextResponse.json(
         {
           success: false,
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
 
     // Create admin
     const admin = await User.create({
-      fullName: fullName.trim(),
+      name: name.trim(),
       email: normalizedEmail,
       password: hashedPassword,
 
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
         message: "Admin account created successfully",
         admin: {
           id: admin._id,
-          fullName: admin.fullName,
+          name: admin.name,
           email: admin.email,
           role: admin.role,
         },

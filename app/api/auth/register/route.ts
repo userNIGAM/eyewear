@@ -6,7 +6,7 @@ import { connectDB } from "@/lib/mongodb";
 import { generateOTP } from "@/lib/auth-utils";
 
 interface RegisterRequest {
-  fullName: string;
+  name: string;
   email: string;
   password: string;
 }
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
 
     const body: RegisterRequest = await request.json();
 
-    const fullName = body.fullName?.trim();
+    const name = body.name?.trim();
     const email = body.email?.trim().toLowerCase();
     const password = body.password;
 
@@ -43,31 +43,31 @@ export async function POST(request: NextRequest) {
     // VALIDATION
     // ============================================
 
-    if (!fullName || !email || !password) {
+    if (!name || !email || !password) {
       return NextResponse.json(
         {
           success: false,
-          message: "Full name, email and password are required",
+          message: "Name, email and password are required",
         },
         { status: 400 },
       );
     }
 
-    if (fullName.length < 3) {
+    if (name.length < 3) {
       return NextResponse.json(
         {
           success: false,
-          message: "Full name must be at least 3 characters",
+          message: "Name must be at least 3 characters",
         },
         { status: 400 },
       );
     }
 
-    if (fullName.length > 50) {
+    if (name.length > 50) {
       return NextResponse.json(
         {
           success: false,
-          message: "Full name cannot exceed 50 characters",
+          message: "Name cannot exceed 50 characters",
         },
         { status: 400 },
       );
@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
     // ============================================
 
     const user = await User.create({
-      fullName,
+      name,
       email,
       password: hashedPassword,
 

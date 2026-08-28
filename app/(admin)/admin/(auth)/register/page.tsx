@@ -15,7 +15,7 @@ import { useRouter } from "next/navigation";
 export default function AdminRegisterPage() {
   const router = useRouter();
 
-  const [fullName, setFullName] = useState("");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [adminSecret, setAdminSecret] = useState("");
@@ -41,7 +41,7 @@ export default function AdminRegisterPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          fullName,
+          name,
           email,
           password,
           adminSecret,
@@ -59,7 +59,7 @@ export default function AdminRegisterPage() {
         "Admin account created successfully. You can now login.",
       );
 
-      setFullName("");
+      setName("");
       setEmail("");
       setPassword("");
       setAdminSecret("");
@@ -107,7 +107,7 @@ export default function AdminRegisterPage() {
 
             <div>
               <label className="mb-2 block text-sm text-zinc-300">
-                Full Name
+                Name
               </label>
 
               <div className="relative">
@@ -118,8 +118,8 @@ export default function AdminRegisterPage() {
 
                 <input
                   type="text"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                   placeholder="Store Administrator"
                   required
                   minLength={3}

@@ -11,8 +11,7 @@ interface ProfileMenuProps {
 
 interface CurrentUser {
   id: string;
-  fullName: string;
-  username?: string;
+  name: string;
   email: string;
   isVerified: boolean;
   createdAt: string;

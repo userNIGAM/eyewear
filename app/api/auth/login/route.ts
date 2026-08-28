@@ -7,6 +7,7 @@ import {
   generateToken,
   sanitizeUser,
   setAuthCookie,
+  type UserRole,
 } from "@/lib/auth-utils";
 
 interface LoginRequest {
@@ -21,6 +22,7 @@ export async function POST(request: NextRequest) {
     const body: LoginRequest = await request.json();
 
     const identifier = body.identifier?.trim().toLowerCase();
+
     const password = body.password;
 
     // =====================================================
@@ -31,10 +33,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          message:
-            "Username/email and password are required",
+          message: "Name/email and password are required",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -43,20 +44,16 @@ export async function POST(request: NextRequest) {
     // =====================================================
 
     const user = await User.findOne({
-      $or: [
-        { email: identifier },
-        { username: identifier },
-      ],
+      $or: [{ email: identifier }, { name: identifier }],
     });
 
     if (!user) {
       return NextResponse.json(
         {
           success: false,
-          message:
-            "Invalid username/email or password",
+          message: "Invalid name/email or password",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -77,19 +74,18 @@ export async function POST(request: NextRequest) {
             message:
               "Your account verification period has expired. Please register again.",
           },
-          { status: 410 }
+          { status: 410 },
         );
       }
 
       return NextResponse.json(
         {
           success: false,
-          message:
-            "Please verify your email before logging in.",
+          message: "Please verify your email before logging in.",
           requiresVerification: true,
           email: user.email,
         },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -97,29 +93,29 @@ export async function POST(request: NextRequest) {
     // CHECK PASSWORD
     // =====================================================
 
-    const passwordValid = await bcrypt.compare(
-      password,
-      user.password
-    );
+    const passwordValid = await bcrypt.compare(password, user.password);
 
     if (!passwordValid) {
       return NextResponse.json(
         {
           success: false,
-          message:
-            "Invalid username/email or password",
+          message: "Invalid name/email or password",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
+
+    // =====================================================
+    // GET USER ROLE
+    // =====================================================
+
+    const role: UserRole = user.role === "admin" ? "admin" : "user";
 
     // =====================================================
     // GENERATE JWT
     // =====================================================
 
-    const token = generateToken(
-      user._id.toString()
-    );
+    const token = generateToken(user._id.toString(), role);
 
     // =====================================================
     // CREATE RESPONSE
@@ -131,7 +127,7 @@ export async function POST(request: NextRequest) {
         message: "Login successful",
         user: sanitizeUser(user),
       },
-      { status: 200 }
+      { status: 200 },
     );
 
     // =====================================================
@@ -147,10 +143,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        message:
-          "Something went wrong while logging in",
+        message: "Something went wrong while logging in",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

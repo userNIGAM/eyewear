@@ -1,7 +1,9 @@
 import mongoose, { Document, Model, Schema } from "mongoose";
 
 export interface IUser extends Document {
-  fullName: string;
+  name: string;
+  /** Legacy field retained for reading records before the name migration. */
+  fullName?: string;
   email: string;
   password: string;
 
@@ -24,12 +26,12 @@ export interface IUser extends Document {
 
 const UserSchema = new Schema<IUser>(
   {
-    fullName: {
+    name: {
       type: String,
-      required: [true, "Full name is required"],
+      required: [true, "Name is required"],
       trim: true,
-      minlength: [3, "Full name must be at least 3 characters"],
-      maxlength: [50, "Full name cannot exceed 50 characters"],
+      minlength: [3, "Name must be at least 3 characters"],
+      maxlength: [50, "Name cannot exceed 50 characters"],
       lowercase: true,
     },
 

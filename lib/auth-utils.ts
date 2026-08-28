@@ -8,17 +8,21 @@ export const AUTH_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 // TYPES
 // =========================================================
 
+export type UserRole = "user" | "admin";
+
 export interface JWTPayload {
   userId: string;
+  role: UserRole;
 }
 
 interface SanitizableUser {
   _id: {
     toString(): string;
   };
+  name?: string;
   fullName?: string;
-  username?: string;
   email: string;
+  role?: UserRole;
   isVerified: boolean;
   createdAt: Date;
 }
@@ -38,7 +42,7 @@ export function generateOTP(length: number = 6): string {
 // GENERATE JWT
 // =========================================================
 
-export const generateToken = (userId: string): string => {
+export const generateToken = (userId: string, role: UserRole): string => {
   const secret = process.env.JWT_SECRET;
 
   if (!secret) {
@@ -48,6 +52,7 @@ export const generateToken = (userId: string): string => {
   return jwt.sign(
     {
       userId,
+      role,
     },
     secret,
     {
@@ -68,13 +73,18 @@ export const verifyToken = (token: string): JWTPayload | null => {
   }
 
   try {
-    const decoded = jwt.verify(token, secret) as JWTPayload;
-
-    if (!decoded.userId) {
+    const decoded = jwt.verify(token, secret);
+    if (
+      typeof decoded === "string" ||
+      !decoded.userId ||
+      (decoded.role !== "user" && decoded.role !== "admin")
+    ) {
       return null;
     }
-
-    return decoded;
+    return {
+      userId: decoded.userId,
+      role: decoded.role,
+    };
   } catch {
     return null;
   }
@@ -87,9 +97,9 @@ export const verifyToken = (token: string): JWTPayload | null => {
 export const sanitizeUser = (user: SanitizableUser) => {
   return {
     id: user._id.toString(),
-    fullName: user.fullName ?? user.username ?? "",
-    username: user.username,
+    name: user.name ?? user.fullName ?? "",
     email: user.email,
+    role: user.role ?? "user",
     isVerified: user.isVerified,
     createdAt: user.createdAt,
   };
@@ -127,6 +137,3 @@ export const clearAuthCookie = (response: NextResponse) => {
     expires: new Date(0),
   });
 };
-
-
-
